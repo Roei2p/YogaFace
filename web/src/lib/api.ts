@@ -1,7 +1,11 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000";
 const TOKEN_KEY = "yogaface_dashboard_token";
 
+/** GitHub Pages build only: no real backend exists there, so the UI runs on fixture data. */
+export const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
+
 export function getToken(): string | null {
+  if (DEMO_MODE) return "demo";
   return localStorage.getItem(TOKEN_KEY);
 }
 
@@ -82,27 +86,66 @@ export interface TimeseriesPoint {
 }
 
 export const api = {
-  getStats: () => request<Stats>("/api/stats"),
-  getTimeseries: () => request<TimeseriesPoint[]>("/api/stats/timeseries"),
-  getMembers: (search?: string) =>
-    request<Member[]>(`/api/members${search ? `?search=${encodeURIComponent(search)}` : ""}`),
-  syncMember: (id: string) => request<Member>(`/api/members/${id}/sync`, { method: "POST" }),
-  updateMember: (id: string, data: { subscriptionStatus?: string; name?: string }) =>
-    request<Member>(`/api/members/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
-  importCsv: (csv: string) =>
-    request<{ imported: number; errors: string[] }>("/api/members/import-csv", {
+  getStats: async () => {
+    if (DEMO_MODE) return (await import("./demoData")).DEMO_STATS;
+    return request<Stats>("/api/stats");
+  },
+  getTimeseries: async () => {
+    if (DEMO_MODE) return (await import("./demoData")).DEMO_TIMESERIES;
+    return request<TimeseriesPoint[]>("/api/stats/timeseries");
+  },
+  getMembers: async (search?: string) => {
+    if (DEMO_MODE) {
+      const { DEMO_MEMBERS } = await import("./demoData");
+      if (!search) return DEMO_MEMBERS;
+      const q = search.toLowerCase();
+      return DEMO_MEMBERS.filter((m) => m.name?.toLowerCase().includes(q) || m.phone.includes(q));
+    }
+    return request<Member[]>(`/api/members${search ? `?search=${encodeURIComponent(search)}` : ""}`);
+  },
+  syncMember: async (id: string) => {
+    if (DEMO_MODE) {
+      const { DEMO_MEMBERS } = await import("./demoData");
+      return DEMO_MEMBERS.find((m) => m.id === id)!;
+    }
+    return request<Member>(`/api/members/${id}/sync`, { method: "POST" });
+  },
+  updateMember: async (id: string, data: { subscriptionStatus?: string; name?: string }) => {
+    if (DEMO_MODE) {
+      const { DEMO_MEMBERS } = await import("./demoData");
+      const member = DEMO_MEMBERS.find((m) => m.id === id)!;
+      return { ...member, ...data } as Member;
+    }
+    return request<Member>(`/api/members/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+  },
+  importCsv: async (csv: string) => {
+    if (DEMO_MODE) return { imported: csv.trim().split("\n").length, errors: [] };
+    return request<{ imported: number; errors: string[] }>("/api/members/import-csv", {
       method: "POST",
       body: JSON.stringify({ csv }),
-    }),
-  getAuditLog: () => request<AuditEvent[]>("/api/audit-log"),
-  askInsights: (question: string) =>
-    request<{ answer: string }>("/api/insights/ask", { method: "POST", body: JSON.stringify({ question }) }),
-  getSettings: () =>
-    request<{ whatsappGroupId: string | null; notifyEmail: string | null; notifyWhatsappPhone: string | null }>(
+    });
+  },
+  getAuditLog: async () => {
+    if (DEMO_MODE) return (await import("./demoData")).DEMO_AUDIT_LOG;
+    return request<AuditEvent[]>("/api/audit-log");
+  },
+  askInsights: async (question: string) => {
+    if (DEMO_MODE) {
+      const { DEMO_INSIGHTS_ANSWER } = await import("./demoData");
+      return { answer: `(${question})\n\n${DEMO_INSIGHTS_ANSWER}` };
+    }
+    return request<{ answer: string }>("/api/insights/ask", { method: "POST", body: JSON.stringify({ question }) });
+  },
+  getSettings: async () => {
+    if (DEMO_MODE) return { whatsappGroupId: "demo-group@g.us", notifyEmail: "noa@example.com", notifyWhatsappPhone: null };
+    return request<{ whatsappGroupId: string | null; notifyEmail: string | null; notifyWhatsappPhone: string | null }>(
       "/api/settings",
-    ),
-  updateSettings: (data: { whatsappGroupId?: string; notifyEmail?: string; notifyWhatsappPhone?: string }) =>
-    request("/api/settings", { method: "PATCH", body: JSON.stringify(data) }),
+    );
+  },
+  updateSettings: async (data: { whatsappGroupId?: string; notifyEmail?: string; notifyWhatsappPhone?: string }) => {
+    if (DEMO_MODE) return data;
+    return request("/api/settings", { method: "PATCH", body: JSON.stringify(data) });
+  },
 };
 
 export { ApiError };

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getToken, setToken, clearToken } from "./lib/api";
+import { getToken, setToken, clearToken, DEMO_MODE } from "./lib/api";
 import { Dashboard } from "./pages/Dashboard";
 import { Members } from "./pages/Members";
 import { AuditLog } from "./pages/AuditLog";
@@ -54,6 +54,11 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-stone-50">
+      {DEMO_MODE && (
+        <div className="bg-amber-500 px-4 py-1.5 text-center text-xs font-medium text-white">
+          מצב הדגמה - נתונים לדוגמה בלבד, לא מחובר לוואטסאפ/סליקה אמיתיים
+        </div>
+      )}
       <header className="border-b border-stone-200 bg-white px-6 py-4">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
           <h1 className="text-lg font-bold text-stone-800">חדר פיקוד - יוגה פנים</h1>
