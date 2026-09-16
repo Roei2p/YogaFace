@@ -1,0 +1,62 @@
+# Render Blueprint - deploys the whole system (API + dashboard, one URL)
+# straight from GitHub. In Render: New -> Blueprint -> pick this repo ->
+# Render reads this file automatically. See README.md for the full flow.
+services:
+  - type: web
+    name: yogaface
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /health
+    disk:
+      name: yogaface-data
+      mountPath: /app/data
+      sizeGB: 1
+    envVars:
+      - key: PORT
+        value: 4000
+      - key: DATABASE_URL
+        value: file:./data/yogaface.db
+      - key: DASHBOARD_API_TOKEN
+        generateValue: true
+      - key: CARDCOM_WEBHOOK_SECRET
+        generateValue: true
+      # Fill these in after the first deploy (Render dashboard -> service ->
+      # Environment) once you have them - see README.md for where each one
+      # comes from. The system runs fine without them; only the relevant
+      # feature (WhatsApp sync / billing sync / AI chat) stays inactive.
+      - key: GREEN_API_ID_INSTANCE
+        sync: false
+      - key: GREEN_API_TOKEN
+        sync: false
+      - key: WHATSAPP_GROUP_ID
+        sync: false
+      - key: CARDCOM_TERMINAL_NUMBER
+        sync: false
+      - key: CARDCOM_API_NAME
+        sync: false
+      - key: CARDCOM_API_PASSWORD
+        sync: false
+      - key: NVIDIA_API_KEY
+        sync: false
+      - key: NVIDIA_MODEL
+        value: meta/llama-3.1-70b-instruct
+      - key: NVIDIA_BASE_URL
+        value: https://integrate.api.nvidia.com/v1
+      - key: NOTIFY_EMAIL_TO
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: NOTIFY_WHATSAPP_PHONE
+        sync: false
+      - key: DIGEST_CRON
+        value: "0 8 * * *"
+      - key: RECONCILE_CRON
+        value: "*/30 * * * *"
