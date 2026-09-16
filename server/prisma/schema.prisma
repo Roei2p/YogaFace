@@ -1,0 +1,51 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// SQLite has no native enum support in Prisma, so subscriptionStatus and
+// groupStatus are plain strings. Valid values are enforced in application
+// code - see server/src/types.ts.
+model Member {
+  id                 String   @id @default(cuid())
+  name               String?
+  phone              String   @unique
+  cardcomCustomerId  String?  @unique
+  subscriptionStatus String   @default("UNKNOWN")
+  subscriptionStart  DateTime?
+  subscriptionEnd    DateTime?
+  lastPaymentAt      DateTime?
+  lastPaymentAmount  Float?
+  groupStatus        String   @default("NOT_IN_GROUP")
+  groupStatusError   String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  events             AuditEvent[]
+
+  @@index([subscriptionStatus])
+  @@index([groupStatus])
+}
+
+model AuditEvent {
+  id        String   @id @default(cuid())
+  memberId  String?
+  member    Member?  @relation(fields: [memberId], references: [id])
+  type      String
+  message   String
+  payload   String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([type])
+}
+
+model Settings {
+  id                  String  @id @default("singleton")
+  whatsappGroupId     String?
+  notifyEmail         String?
+  notifyWhatsappPhone String?
+}
