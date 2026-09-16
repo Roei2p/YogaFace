@@ -1,0 +1,7 @@
+# Caddy automatically gets and renews a real HTTPS certificate (Let's
+# Encrypt) for DOMAIN, as long as DOMAIN correctly points at this machine's
+# public IP and your router forwards ports 80+443 here. See README.md
+# "אחסון מקומי (בית/סטודיו)".
+{$DOMAIN} {
+	reverse_proxy app:4000
+}

@@ -1,18 +1,47 @@
 services:
-  server:
-    build: ./server
-    ports:
-      - "4000:4000"
+  # Combined API + dashboard (single process, see repo-root Dockerfile).
+  app:
+    build: .
     env_file:
       - .env
     volumes:
-      - ./server/data:/app/data
+      - ./data:/app/data
     restart: unless-stopped
 
-  web:
-    build: ./web
-    ports:
-      - "8080:80"
+  # Reverse proxy that gets/renews a real HTTPS certificate automatically
+  # (Let's Encrypt) for DOMAIN - required so Cardcom's webhook and the
+  # dashboard both work over https:// from the outside.
+  caddy:
+    image: caddy:2-alpine
     depends_on:
-      - server
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    env_file:
+      - .env
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
     restart: unless-stopped
+
+  # Optional - only needed if you're using DuckDNS for dynamic DNS because
+  # your home IP changes over time (see README). Not needed if your router
+  # has a static IP or its own DDNS. Enable with:
+  #   docker compose --profile duckdns up -d
+  duckdns:
+    image: alpine:3.20
+    profiles: ["duckdns"]
+    env_file:
+      - .env
+    entrypoint: >
+      sh -c "while true; do
+        wget -qO- \"https://www.duckdns.org/update?domains=$$DUCKDNS_SUBDOMAIN&token=$$DUCKDNS_TOKEN&ip=\";
+        sleep 300;
+      done"
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:
