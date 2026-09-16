@@ -1,4 +1,3 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { prisma } from "../db.js";
 import { config } from "../config.js";
 
@@ -46,30 +45,54 @@ async function buildDataSnapshot() {
   };
 }
 
+const SYSTEM_PROMPT =
+  "את/ה עוזר/ת נתונים לבעלת סטודיו ליוגה פנים שמנהלת קבוצת וואטסאפ בתשלום. " +
+  "ענה/י בעברית, בקצרה ולעניין, אך ורק על סמך נתוני ה-JSON המצורפים. " +
+  "אם המידע לא מספיק כדי לענות בביטחון, אמר/י זאת במפורש במקום לנחש. " +
+  "כשמתאים, הצע/י תובנה או פעולה מעשית (למשל לפנות למישהי שביטלה).";
+
+interface OpenAiCompatibleChatResponse {
+  choices?: { message?: { content?: string } }[];
+}
+
+/**
+ * Calls an NVIDIA NIM-hosted model (or any other OpenAI-compatible
+ * chat-completions endpoint) - see NVIDIA_BASE_URL / NVIDIA_MODEL in
+ * .env.example. Default points at NVIDIA's hosted API (build.nvidia.com);
+ * point it at a self-hosted NIM endpoint instead by changing NVIDIA_BASE_URL.
+ */
 export async function answerInsightsQuestion(question: string): Promise<string> {
-  if (!config.anthropicApiKey) {
-    throw new Error("ANTHROPIC_API_KEY is not configured on the server");
+  if (!config.nvidia.apiKey) {
+    throw new Error("NVIDIA_API_KEY is not configured on the server");
   }
 
   const snapshot = await buildDataSnapshot();
-  const client = new Anthropic({ apiKey: config.anthropicApiKey });
 
-  const message = await client.messages.create({
-    model: "claude-sonnet-4-5",
-    max_tokens: 1024,
-    system:
-      "את/ה עוזר/ת נתונים לבעלת סטודיו ליוגה פנים שמנהלת קבוצת וואטסאפ בתשלום. " +
-      "ענה/י בעברית, בקצרה ולעניין, אך ורק על סמך נתוני ה-JSON המצורפים. " +
-      "אם המידע לא מספיק כדי לענות בביטחון, אמר/י זאת במפורש במקום לנחש. " +
-      "כשמתאים, הצע/י תובנה או פעולה מעשית (למשל לפנות למישהי שביטלה).",
-    messages: [
-      {
-        role: "user",
-        content: `נתוני העסק (JSON):\n${JSON.stringify(snapshot, null, 2)}\n\nשאלה: ${question}`,
-      },
-    ],
+  const res = await fetch(`${config.nvidia.baseUrl}/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${config.nvidia.apiKey}`,
+    },
+    body: JSON.stringify({
+      model: config.nvidia.model,
+      max_tokens: 1024,
+      temperature: 0.2,
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        {
+          role: "user",
+          content: `נתוני העסק (JSON):\n${JSON.stringify(snapshot, null, 2)}\n\nשאלה: ${question}`,
+        },
+      ],
+    }),
   });
 
-  const textBlock = message.content.find((b) => b.type === "text");
-  return textBlock && textBlock.type === "text" ? textBlock.text : "לא התקבלה תשובה.";
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`NVIDIA API call failed: ${res.status} ${text}`);
+  }
+
+  const data = (await res.json()) as OpenAiCompatibleChatResponse;
+  return data.choices?.[0]?.message?.content ?? "לא התקבלה תשובה.";
 }

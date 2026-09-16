@@ -24,7 +24,11 @@ export const config = {
     apiPassword: process.env.CARDCOM_API_PASSWORD ?? "",
   },
 
-  anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? "",
+  nvidia: {
+    apiKey: process.env.NVIDIA_API_KEY ?? "",
+    baseUrl: process.env.NVIDIA_BASE_URL ?? "https://integrate.api.nvidia.com/v1",
+    model: process.env.NVIDIA_MODEL ?? "meta/llama-3.1-70b-instruct",
+  },
 
   notify: {
     emailTo: process.env.NOTIFY_EMAIL_TO ?? "",

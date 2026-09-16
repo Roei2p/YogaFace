@@ -62,8 +62,16 @@ Cardcom תומכת בהתראות (webhook) על אירועי חיוב/ביטו�
 
 ### 3. AI Insights (הצ'אט החכם)
 
-נדרש מפתח API של Anthropic (`ANTHROPIC_API_KEY`). ללא מפתח, שאר המערכת
-(ניהול הקבוצה, הדשבורד, ההתראות) ממשיכה לעבוד כרגיל - רק עמוד הצ'אט לא יפעל.
+המערכת קוראת למודל שפה דרך API תואם OpenAI (chat completions) - ברירת
+המחדל מוגדרת ל-NVIDIA (build.nvidia.com / NIM):
+
+1. יצירת מפתח API ב-[build.nvidia.com](https://build.nvidia.com).
+2. מילוי `NVIDIA_API_KEY` ב-`.env`.
+3. `NVIDIA_MODEL` ו-`NVIDIA_BASE_URL` ניתנים לשינוי אם רוצים מודל אחר מהקטלוג
+   של NVIDIA, או להצביע על endpoint עצמאי (self-hosted NIM).
+
+ללא מפתח, שאר המערכת (ניהול הקבוצה, הדשבורד, ההתראות) ממשיכה לעבוד כרגיל -
+רק עמוד הצ'אט לא יפעל.
 
 ### 4. התראות/סיכום יומי
 
