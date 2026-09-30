@@ -1,0 +1,73 @@
+{
+  "previewPort": 3000,
+  "healthPath": "/",
+  "startCommand": "docker compose -f docker-compose.base44.yml up -d",
+  "secrets": [
+    {
+      "name": "DASHBOARD_API_TOKEN",
+      "description": "Bearer token the dashboard sends to authenticate /api/* calls. Required for the dashboard to function. Generated as a development placeholder; replace with your own if desired.",
+      "requiredAtBoot": true,
+      "generatedForDevelopment": true
+    },
+    {
+      "name": "GREEN_API_ID_INSTANCE",
+      "description": "Green API instance id for WhatsApp integration (https://green-api.com). Optional — without it WhatsApp sync is inactive.",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "GREEN_API_TOKEN",
+      "description": "Green API instance token for WhatsApp integration. Optional.",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "WHATSAPP_GROUP_ID",
+      "description": "WhatsApp group chat id (format 1234567890-1234567890@g.us). Optional — enables reconciliation cron.",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "CARDCOM_TERMINAL_NUMBER",
+      "description": "Cardcom terminal number for billing reconciliation. Optional.",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "CARDCOM_API_NAME",
+      "description": "Cardcom API name for billing reconciliation. Optional.",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "CARDCOM_API_PASSWORD",
+      "description": "Cardcom API password for billing reconciliation. Optional.",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "NVIDIA_API_KEY",
+      "description": "NVIDIA NIM API key for AI insights chat (https://build.nvidia.com). Optional — without it the chat feature returns an error.",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "NOTIFY_EMAIL_TO",
+      "description": "Email address to send daily/weekly digest to. Optional.",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "SMTP_HOST",
+      "description": "SMTP server host for notification emails. Optional.",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "SMTP_USER",
+      "description": "SMTP username for notification emails. Optional.",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "SMTP_PASS",
+      "description": "SMTP password for notification emails. Optional.",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "NOTIFY_WHATSAPP_PHONE",
+      "description": "Phone number to send WhatsApp digest notifications to. Optional.",
+      "requiredAtBoot": false
+    }
+  ]
+}

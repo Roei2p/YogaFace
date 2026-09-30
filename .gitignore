@@ -10,3 +10,4 @@ server/prisma/dev.db-journal
 server/data/
 server/prisma/data/
 .DS_Store
+data/
