@@ -7,15 +7,15 @@ interface Props {
 export function StatCard({ label, value, tone = "default" }: Props) {
   const toneClasses =
     tone === "warning"
-      ? "border-amber-300 bg-amber-50 text-amber-800"
+      ? "border-amber-200 bg-amber-50 text-amber-800"
       : tone === "good"
-        ? "border-emerald-300 bg-emerald-50 text-emerald-800"
-        : "border-stone-200 bg-white text-stone-800";
+        ? "border-sage-200 bg-sage-50 text-sage-800"
+        : "border-ink/5 bg-white text-ink";
 
   return (
-    <div className={`rounded-xl border p-4 shadow-sm ${toneClasses}`}>
-      <div className="text-sm opacity-70">{label}</div>
-      <div className="mt-1 text-2xl font-bold">{value}</div>
+    <div className={`rounded-2xl border p-4 shadow-card transition hover:-translate-y-0.5 ${toneClasses}`}>
+      <div className="text-sm opacity-60">{label}</div>
+      <div className="mt-1 font-serif text-2xl">{value}</div>
     </div>
   );
 }
