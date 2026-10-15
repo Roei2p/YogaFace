@@ -85,6 +85,17 @@ export interface TimeseriesPoint {
   groupSize: number;
 }
 
+export interface CardcomRawEvent {
+  id: string;
+  createdAt: string;
+  payload: Record<string, unknown> | null;
+}
+
+export interface WhatsappGroup {
+  id: string;
+  name?: string;
+}
+
 export const api = {
   getStats: async () => {
     if (DEMO_MODE) return (await import("./demoData")).DEMO_STATS;
@@ -145,6 +156,14 @@ export const api = {
   updateSettings: async (data: { whatsappGroupId?: string; notifyEmail?: string; notifyWhatsappPhone?: string }) => {
     if (DEMO_MODE) return data;
     return request("/api/settings", { method: "PATCH", body: JSON.stringify(data) });
+  },
+  getCardcomLog: async () => {
+    if (DEMO_MODE) return (await import("./demoData")).DEMO_CARDCOM_LOG;
+    return request<CardcomRawEvent[]>("/api/cardcom-log");
+  },
+  listWhatsappGroups: async () => {
+    if (DEMO_MODE) return (await import("./demoData")).DEMO_WHATSAPP_GROUPS;
+    return request<WhatsappGroup[]>("/api/settings/whatsapp-groups");
   },
 };
 

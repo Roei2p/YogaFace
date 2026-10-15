@@ -13,6 +13,7 @@ import { membersRouter } from "./routes/api/members.js";
 import { auditRouter } from "./routes/api/audit.js";
 import { settingsRouter } from "./routes/api/settings.js";
 import { insightsRouter } from "./routes/api/insights.js";
+import { cardcomLogRouter } from "./routes/api/cardcomLog.js";
 import { startCronJobs } from "./jobs/cronJobs.js";
 
 const app = express();
@@ -35,6 +36,7 @@ app.use("/api/members", requireDashboardAuth, membersRouter);
 app.use("/api/audit-log", requireDashboardAuth, auditRouter);
 app.use("/api/settings", requireDashboardAuth, settingsRouter);
 app.use("/api/insights", requireDashboardAuth, insightsRouter);
+app.use("/api/cardcom-log", requireDashboardAuth, cardcomLogRouter);
 
 // When the dashboard's built assets are bundled alongside the server
 // (see the repo-root Dockerfile / Render deploy), serve them so the whole

@@ -1,6 +1,6 @@
 // Fixture data for the GitHub Pages demo build (VITE_DEMO_MODE=true), which
 // has no real backend behind it - see api.ts. Not used in a real deploy.
-import type { AuditEvent, Member, Stats, TimeseriesPoint } from "./api";
+import type { AuditEvent, CardcomRawEvent, Member, Stats, TimeseriesPoint, WhatsappGroup } from "./api";
 
 export const DEMO_STATS: Stats = {
   totalMembers: 42,
@@ -95,3 +95,23 @@ export const DEMO_AUDIT_LOG: AuditEvent[] = [
 
 export const DEMO_INSIGHTS_ANSWER =
   "זו תשובת הדגמה - בגרסה החיה אני עונה על סמך הנתונים האמיתיים של הקבוצה שלך (חברות פעילות, ביטולים, הכנסה) דרך מודל שפה של NVIDIA.";
+
+export const DEMO_WHATSAPP_GROUPS: WhatsappGroup[] = [
+  { id: "demo-group@g.us", name: "יוגה פנים - קבוצת מנויות" },
+  { id: "demo-group-2@g.us", name: "יוגה פנים - צוות" },
+];
+
+export const DEMO_CARDCOM_LOG: CardcomRawEvent[] = [
+  {
+    id: "demo-raw-1",
+    createdAt: "2026-09-14T09:00:00.000Z",
+    payload: {
+      Operation: "Charge",
+      Approved: "1",
+      CardOwnerName: "דנה כהן",
+      CardOwnerPhone: "972501112222",
+      SumToBill: "99",
+      ReturnValue: "cust_1024",
+    },
+  },
+];

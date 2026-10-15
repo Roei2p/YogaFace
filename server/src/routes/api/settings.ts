@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../../db.js";
-import { getGroupData } from "../../integrations/greenApi.js";
+import { getGroupData, listGroups } from "../../integrations/greenApi.js";
 import { config } from "../../config.js";
 
 export const settingsRouter = Router();
@@ -31,7 +31,20 @@ settingsRouter.patch("/", async (req, res) => {
   res.json(updated);
 });
 
-/** Lists the WhatsApp groups the linked instance can see, to help pick WHATSAPP_GROUP_ID. */
+/**
+ * Discovery: lists every WhatsApp group the linked number can see, by name,
+ * so the owner can find their group's id without already knowing it.
+ */
+settingsRouter.get("/whatsapp-groups", async (_req, res) => {
+  try {
+    const groups = await listGroups();
+    res.json(groups);
+  } catch (err) {
+    res.status(502).json({ error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
+/** Verification: once a group id is set, confirms it's reachable and shows its live participants. */
 settingsRouter.get("/whatsapp-group-preview", async (_req, res) => {
   const settings = await getSettings();
   const groupId = settings.whatsappGroupId || config.whatsappGroupId;
