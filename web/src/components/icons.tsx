@@ -151,6 +151,33 @@ export function IconX({ className = "h-4 w-4" }: { className?: string }) {
   );
 }
 
+export function IconTrendUp({ className = "h-3.5 w-3.5" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...common} stroke="currentColor">
+      <path d="M3 16 9.5 9.5 14 14 21 7" />
+      <path d="M15 7h6v6" />
+    </svg>
+  );
+}
+
+export function IconTrendDown({ className = "h-3.5 w-3.5" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...common} stroke="currentColor">
+      <path d="M3 8 9.5 14.5 14 10 21 17" />
+      <path d="M15 17h6v-6" />
+    </svg>
+  );
+}
+
+export function IconCoin({ className = "h-5 w-5" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...common} stroke="currentColor">
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 7.2v9.6M14.8 9.3c0-1.1-1.2-1.8-2.8-1.8s-2.6.8-2.6 1.8c0 2.6 5.4 1.3 5.4 3.9 0 1.1-1.1 1.9-2.8 1.9s-2.9-.7-2.9-1.9" />
+    </svg>
+  );
+}
+
 export function IconUserGroup({ className = "h-4 w-4" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} {...common} stroke="currentColor">
