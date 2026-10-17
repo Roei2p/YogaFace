@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { api, type Member } from "../lib/api";
 import { IconSearch, IconSync, IconAlert, IconUpload } from "../components/icons";
+import { Skeleton } from "../components/Skeleton";
+import { useToast } from "../components/Toast";
 
 const statusLabel: Record<Member["subscriptionStatus"], string> = {
   ACTIVE: "פעיל",
@@ -34,18 +36,20 @@ function initials(name: string | null, phone: string) {
 }
 
 export function Members() {
+  const toast = useToast();
   const [members, setMembers] = useState<Member[]>([]);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [csv, setCsv] = useState("");
-  const [importResult, setImportResult] = useState<string | null>(null);
 
   function load() {
     api
       .getMembers(search || undefined)
       .then(setMembers)
-      .catch((e) => setError(e.message));
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
   }
 
   useEffect(load, [search]);
@@ -55,8 +59,9 @@ export function Members() {
     try {
       await api.syncMember(id);
       load();
+      toast("הסנכרון הושלם");
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      toast(e instanceof Error ? e.message : String(e), "error");
     } finally {
       setBusyId(null);
     }
@@ -67,8 +72,9 @@ export function Members() {
     try {
       await api.updateMember(id, { subscriptionStatus });
       load();
+      toast("הסטטוס עודכן");
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      toast(e instanceof Error ? e.message : String(e), "error");
     } finally {
       setBusyId(null);
     }
@@ -77,11 +83,11 @@ export function Members() {
   async function handleImport() {
     try {
       const res = await api.importCsv(csv);
-      setImportResult(`יובאו ${res.imported} חברות${res.errors.length ? `, ${res.errors.length} שגיאות` : ""}`);
+      toast(`יובאו ${res.imported} חברות${res.errors.length ? `, ${res.errors.length} שגיאות` : ""}`);
       setCsv("");
       load();
     } catch (e) {
-      setImportResult(e instanceof Error ? e.message : String(e));
+      toast(e instanceof Error ? e.message : String(e), "error");
     }
   }
 
@@ -116,7 +122,16 @@ export function Members() {
             </tr>
           </thead>
           <tbody>
-            {members.map((m) => (
+            {loading &&
+              Array.from({ length: 4 }).map((_, i) => (
+                <tr key={i} className="border-t border-ink/5">
+                  <td className="p-4" colSpan={6}>
+                    <Skeleton className="h-6" />
+                  </td>
+                </tr>
+              ))}
+            {!loading &&
+              members.map((m) => (
               <tr key={m.id} className="border-t border-ink/5 transition hover:bg-brand-50/40">
                 <td className="p-4">
                   <div className="flex items-center gap-2.5">
@@ -173,7 +188,7 @@ export function Members() {
                 </td>
               </tr>
             ))}
-            {members.length === 0 && (
+            {!loading && members.length === 0 && (
               <tr>
                 <td colSpan={6} className="p-10 text-center text-ink/35">
                   אין חברות עדיין
@@ -205,7 +220,6 @@ export function Members() {
         >
           ייבוא
         </button>
-        {importResult && <p className="mt-2 text-sm text-ink/60">{importResult}</p>}
       </details>
     </div>
   );

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, type AuditEvent } from "../lib/api";
 import { IconSync, IconCheck, IconAlert, IconSettingsGear, IconX } from "../components/icons";
+import { Skeleton } from "../components/Skeleton";
 
 const typeLabel: Record<string, string> = {
   added_to_group: "נוספה לקבוצה",
@@ -26,16 +27,30 @@ const typeMeta: Record<string, { icon: typeof IconSync; tone: string }> = {
 
 export function AuditLog() {
   const [events, setEvents] = useState<AuditEvent[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api.getAuditLog().then(setEvents).catch((e) => setError(e.message));
+    api
+      .getAuditLog()
+      .then(setEvents)
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
   }, []);
 
   if (error)
     return (
       <div className="flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm text-rose-700">
         <IconAlert /> {error}
+      </div>
+    );
+
+  if (loading)
+    return (
+      <div className="space-y-2">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-[4.25rem]" />
+        ))}
       </div>
     );
 

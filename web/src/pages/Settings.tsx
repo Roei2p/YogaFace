@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, type CardcomRawEvent, type WhatsappGroup } from "../lib/api";
-import { IconUserGroup, IconMail, IconPhoneWave, IconCheck, IconAlert, IconSearch, IconSync } from "../components/icons";
+import { IconUserGroup, IconMail, IconPhoneWave, IconAlert, IconSearch, IconSync } from "../components/icons";
+import { useToast } from "../components/Toast";
 
 const FIELDS = [
   { key: "notifyEmail", label: "אימייל לסיכום יומי", placeholder: "noa@example.com", icon: IconMail },
@@ -8,8 +9,8 @@ const FIELDS = [
 ] as const;
 
 export function Settings() {
+  const toast = useToast();
   const [values, setValues] = useState({ whatsappGroupId: "", notifyEmail: "", notifyWhatsappPhone: "" });
-  const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cardcomLog, setCardcomLog] = useState<CardcomRawEvent[]>([]);
   const [groups, setGroups] = useState<WhatsappGroup[] | null>(null);
@@ -33,10 +34,9 @@ export function Settings() {
   async function save() {
     try {
       await api.updateSettings(values);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      toast("ההגדרות נשמרו");
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      toast(e instanceof Error ? e.message : String(e), "error");
     }
   }
 
@@ -121,19 +121,12 @@ export function Settings() {
             />
           </div>
         ))}
-        <div className="flex items-center gap-3 pt-1">
-          <button
-            className="rounded-xl bg-gradient-to-l from-brand-600 to-brand-500 px-5 py-2.5 text-sm font-medium text-white shadow-glow transition hover:shadow-lg"
-            onClick={save}
-          >
-            שמירה
-          </button>
-          {saved && (
-            <span className="flex items-center gap-1 text-sm font-medium text-sage-700">
-              <IconCheck className="h-4 w-4" /> נשמר
-            </span>
-          )}
-        </div>
+        <button
+          className="rounded-xl bg-gradient-to-l from-brand-600 to-brand-500 px-5 py-2.5 text-sm font-medium text-white shadow-glow transition hover:shadow-lg"
+          onClick={save}
+        >
+          שמירה
+        </button>
       </div>
 
       <details className="group max-w-lg rounded-2xl border border-ink/5 bg-white p-5 shadow-card">
