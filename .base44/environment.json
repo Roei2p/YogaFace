@@ -7,6 +7,16 @@
       "name": "DASHBOARD_API_TOKEN",
       "description": "Bearer token the dashboard asks for on its login screen and sends to /api/*. The server starts without it, but every /api route then answers 500, so it is needed to sign in and see the dashboard.",
       "requiredAtBoot": false
+    },
+    {
+      "name": "GREEN_API_ID_INSTANCE",
+      "description": "Green API instance id. Sends WhatsApp group changes and the student course login codes.",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "GREEN_API_TOKEN",
+      "description": "Green API apiTokenInstance for the same instance.",
+      "requiredAtBoot": false
     }
   ]
 }

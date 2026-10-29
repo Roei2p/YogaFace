@@ -41,6 +41,20 @@ docker compose -f docker-compose.base44.yml up -d --force-recreate server-setup 
   `VITE_API_BASE_URL` (what both the Dockerfile and the dev compose set) means
   same-origin requests — do not remove that env var or the proxy stops being used.
 
+## Student course area
+
+- Students open `/course` (picked in `web/src/main.tsx`, not a router). The API is
+  `/student/*` (proxied like `/api`); owner management is `/api/course/*` behind the
+  dashboard token, shown as the "הקורס" tab.
+- Login is a 6-digit WhatsApp code via Green API (`server/src/services/studentAuth.ts`).
+  Only members with `subscriptionStatus === "ACTIVE"` get a code, and access is
+  re-checked on every request, so a cancelled member is locked out right away. Without
+  Green API credentials `request-code` returns 503 for known active numbers.
+- Videos are YouTube/Vimeo links only (validated server-side, embedded via
+  `web/src/lib/video.ts`).
+- To test signed-in flows without WhatsApp, insert a `LoginCode` row with the sha256 of a
+  known code for a throwaway member from a script in `/tmp`, then delete the member.
+
 ## Verifying it works
 
 - `curl -s localhost:3000/health` → `{"ok":true}` (proves web + proxy + API).

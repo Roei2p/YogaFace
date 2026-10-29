@@ -7,12 +7,14 @@ import { Members } from "./pages/Members";
 import { AuditLog } from "./pages/AuditLog";
 import { Chat } from "./pages/Chat";
 import { Settings } from "./pages/Settings";
+import { CourseAdmin } from "./pages/CourseAdmin";
 
-type Tab = "dashboard" | "members" | "audit" | "chat" | "settings";
+type Tab = "dashboard" | "members" | "course" | "audit" | "chat" | "settings";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "dashboard", label: "דשבורד" },
   { id: "members", label: "חברות" },
+  { id: "course", label: "הקורס" },
   { id: "chat", label: "שאלות ותובנות" },
   { id: "audit", label: "יומן פעילות" },
   { id: "settings", label: "הגדרות" },
@@ -70,6 +72,7 @@ export default function App() {
       <main className="mx-auto max-w-5xl p-6">
         {tab === "dashboard" && <Dashboard />}
         {tab === "members" && <Members />}
+        {tab === "course" && <CourseAdmin />}
         {tab === "chat" && <Chat />}
         {tab === "audit" && <AuditLog />}
         {tab === "settings" && <Settings />}

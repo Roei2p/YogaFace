@@ -96,6 +96,46 @@ export interface WhatsappGroup {
   name?: string;
 }
 
+export interface AdminLesson {
+  id: string;
+  moduleId: string;
+  title: string;
+  description: string | null;
+  videoUrl: string;
+  durationMin: number | null;
+  published: boolean;
+  _count: { progress: number };
+}
+
+export interface AdminModule {
+  id: string;
+  title: string;
+  description: string | null;
+  lessons: AdminLesson[];
+}
+
+export interface LessonInput {
+  moduleId?: string;
+  title: string;
+  description: string;
+  videoUrl: string;
+  durationMin: number | null;
+  published: boolean;
+}
+
+export const courseAdminApi = {
+  list: async () => (DEMO_MODE ? [] : request<AdminModule[]>("/api/course")),
+  createModule: (title: string, description: string) =>
+    request("/api/course/modules", { method: "POST", body: JSON.stringify({ title, description }) }),
+  updateModule: (id: string, data: { title?: string; description?: string; order?: number }) =>
+    request(`/api/course/modules/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  deleteModule: (id: string) => request(`/api/course/modules/${id}`, { method: "DELETE" }),
+  createLesson: (data: LessonInput) => request("/api/course/lessons", { method: "POST", body: JSON.stringify(data) }),
+  updateLesson: (id: string, data: Partial<LessonInput> & { order?: number }) =>
+    request(`/api/course/lessons/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  deleteLesson: (id: string) => request(`/api/course/lessons/${id}`, { method: "DELETE" }),
+};
+
 export const api = {
   getStats: async () => {
     if (DEMO_MODE) return (await import("./demoData")).DEMO_STATS;

@@ -15,6 +15,8 @@ import { settingsRouter } from "./routes/api/settings.js";
 import { insightsRouter } from "./routes/api/insights.js";
 import { cardcomLogRouter } from "./routes/api/cardcomLog.js";
 import { startCronJobs } from "./jobs/cronJobs.js";
+import { courseAdminRouter } from "./routes/api/course.js";
+import { studentRouter } from "./routes/student.js";
 
 const app = express();
 
@@ -37,6 +39,10 @@ app.use("/api/audit-log", requireDashboardAuth, auditRouter);
 app.use("/api/settings", requireDashboardAuth, settingsRouter);
 app.use("/api/insights", requireDashboardAuth, insightsRouter);
 app.use("/api/cardcom-log", requireDashboardAuth, cardcomLogRouter);
+app.use("/api/course", requireDashboardAuth, courseAdminRouter);
+
+// Student course area - its own WhatsApp-code session, not the dashboard token.
+app.use("/student", studentRouter);
 
 // When the dashboard's built assets are bundled alongside the server
 // (see the repo-root Dockerfile / Render deploy), serve them so the whole
@@ -45,7 +51,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const webDist = path.join(__dirname, "../public");
 if (fs.existsSync(webDist)) {
   app.use(express.static(webDist));
-  app.get(/^(?!\/api|\/webhooks|\/health).*/, (_req, res) => {
+  app.get(/^(?!\/api|\/student|\/webhooks|\/health).*/, (_req, res) => {
     res.sendFile(path.join(webDist, "index.html"));
   });
   logger.info("Serving bundled dashboard from /public");

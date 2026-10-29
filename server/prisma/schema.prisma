@@ -25,6 +25,8 @@ model Member {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
   events             AuditEvent[]
+  progress           LessonProgress[]
+  sessions           StudentSession[]
 
   @@index([subscriptionStatus])
   @@index([groupStatus])
@@ -48,4 +50,65 @@ model Settings {
   whatsappGroupId     String?
   notifyEmail         String?
   notifyWhatsappPhone String?
+}
+
+// --- Course (student area) ---
+
+model CourseModule {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  order       Int      @default(0)
+  lessons     Lesson[]
+  createdAt   DateTime @default(now())
+}
+
+model Lesson {
+  id          String           @id @default(cuid())
+  moduleId    String
+  module      CourseModule     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  // Vimeo or YouTube link pasted by Noa; embedded in the player.
+  videoUrl    String
+  durationMin Int?
+  order       Int              @default(0)
+  published   Boolean          @default(true)
+  progress    LessonProgress[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([moduleId])
+}
+
+model LessonProgress {
+  id          String   @id @default(cuid())
+  memberId    String
+  member      Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  lessonId    String
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  completedAt DateTime @default(now())
+
+  @@unique([memberId, lessonId])
+}
+
+// One-time WhatsApp login codes. Only a hash of the code is stored.
+model LoginCode {
+  id        String   @id @default(cuid())
+  memberId  String
+  codeHash  String
+  attempts  Int      @default(0)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([memberId])
+}
+
+model StudentSession {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  memberId  String
+  member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }

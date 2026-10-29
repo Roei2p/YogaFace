@@ -18,6 +18,15 @@ export default {
           800: "#6e311b",
           900: "#4a2113",
         },
+        // Student course area - taken from face-yoga.co.il (periwinkle blue + navy).
+        fy: {
+          navy: "#1f2a7a",
+          blue: "#5b84f0",
+          deep: "#3f63d6",
+          soft: "#eef1fe",
+          mist: "#f2f3f5",
+          ink: "#3d3d4a",
+        },
         sage: {
           50: "#f5f7f0",
           100: "#e6ecdb",
