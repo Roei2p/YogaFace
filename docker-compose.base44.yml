@@ -1,0 +1,132 @@
+# Base44 development setup. Runs the cloned source (never a prebuilt image)
+# with live reload, so edits in server/ and web/ apply without a rebuild.
+#
+# Only the dashboard (port 3000) is published; the API is reached through the
+# Vite dev-server proxy, so the browser stays on a single origin.
+#
+#   docker compose -f docker-compose.base44.yml up -d --build
+#
+# After changing server/package-lock.json or web/package-lock.json, re-run the
+# install step so the dependency volumes pick it up:
+#
+#   docker compose -f docker-compose.base44.yml up -d --force-recreate server-setup web
+
+services:
+  # One-shot: installs server dependencies and generates the Prisma client into
+  # the shared server_node_modules volume. The only service that writes there,
+  # so installers never run concurrently against the same directory.
+  server-setup:
+    build:
+      context: .
+      dockerfile: docker/base44-node.Dockerfile
+    image: base44-node-base
+    working_dir: /app/server
+    volumes:
+      - ./server:/app/server
+      - server_node_modules:/app/server/node_modules
+    environment:
+      - DATABASE_URL=file:./data/yogaface.db
+    # The base image installs OpenSSL, which Prisma's engines require.
+    command: >
+      sh -ec "npm ci --no-audit --no-fund &&
+      npx prisma generate"
+    restart: "no"
+
+  # One-shot: applies the Prisma migrations to the SQLite file before the API
+  # starts serving requests.
+  migrate:
+    build:
+      context: .
+      dockerfile: docker/base44-node.Dockerfile
+    image: base44-node-base
+    working_dir: /app/server
+    volumes:
+      - ./server:/app/server
+      - server_node_modules:/app/server/node_modules
+      - server_db:/app/server/prisma/data
+    environment:
+      - DATABASE_URL=file:./data/yogaface.db
+    depends_on:
+      server-setup:
+        condition: service_completed_successfully
+    command: sh -ec "npx prisma migrate deploy"
+    restart: "no"
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/base44-node.Dockerfile
+    image: base44-node-base
+    working_dir: /app/server
+    volumes:
+      - ./server:/app/server
+      - server_node_modules:/app/server/node_modules
+      - server_db:/app/server/prisma/data
+    env_file:
+      # Platform-managed secrets (DASHBOARD_API_TOKEN, ...). Last entry, so the
+      # user's values always win over any default.
+      - /run/base44/app.env
+    environment:
+      - PORT=4000
+      - DATABASE_URL=file:./data/yogaface.db
+      - BASE44_PREVIEW_MODE
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    command: sh -ec "exec npm run dev"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:4000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    restart: on-failure
+    labels:
+      base44.project: "YogaFace API"
+      base44.kind: "api"
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/base44-node.Dockerfile
+    image: base44-node-base
+    working_dir: /app/web
+    volumes:
+      - ./web:/app/web
+      - web_node_modules:/app/web/node_modules
+    environment:
+      # Same-origin API calls: the dev server proxies /api to the api service.
+      - VITE_API_BASE_URL=
+      - VITE_API_PROXY_TARGET=http://api:4000
+      - BASE44_PREVIEW_MODE
+      - BASE44_SANDBOX_HOST_DOMAIN
+    ports:
+      - "3000:5173"
+    depends_on:
+      api:
+        condition: service_healthy
+    command: sh -ec "npm ci --no-audit --no-fund && exec npx vite --host 0.0.0.0 --port 5173"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "Promise.all([fetch('http://127.0.0.1:5173/'),fetch('http://127.0.0.1:5173/health')]).then(([web,api])=>{if(!web.ok)throw new Error('dashboard '+web.status);if(!api.ok)throw new Error('api via proxy '+api.status);process.exit(0)}).catch(e=>{console.error(String(e));process.exit(1)})"
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 90s
+    restart: on-failure
+    labels:
+      base44.project: "YogaFace Dashboard"
+      base44.kind: "web"
+      base44.port: "3000"
+
+volumes:
+  server_node_modules:
+  server_db:
+  web_node_modules:

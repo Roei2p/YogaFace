@@ -1,0 +1,12 @@
+{
+  "previewPort": 3000,
+  "healthPath": "/",
+  "startCommand": "docker compose -f docker-compose.base44.yml up -d",
+  "secrets": [
+    {
+      "name": "DASHBOARD_API_TOKEN",
+      "description": "Bearer token the dashboard asks for on its login screen and sends to /api/*. The server starts without it, but every /api route then answers 500, so it is needed to sign in and see the dashboard.",
+      "requiredAtBoot": false
+    }
+  ]
+}

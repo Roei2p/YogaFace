@@ -13,6 +13,13 @@ RUN npm run build
 
 FROM node:22-slim AS server-build
 WORKDIR /app/server
+# node:22-slim is Debian 12 with no libssl and no openssl CLI. Prisma then
+# guesses the openssl-1.1.x engine and fails to load it ("Schema engine
+# error" on migrate, engine crash on the first query). Install OpenSSL before
+# prisma generate so the right engine is generated.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl \
+  && rm -rf /var/lib/apt/lists/*
 COPY server/package.json server/package-lock.json* ./
 RUN npm install
 COPY server/ ./
@@ -22,6 +29,11 @@ RUN npm run build
 FROM node:22-slim
 WORKDIR /app
 ENV NODE_ENV=production
+# The runtime runs `prisma migrate deploy`, and the Prisma query engine needs
+# libssl - neither is present in the base image.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl \
+  && rm -rf /var/lib/apt/lists/*
 COPY server/package.json server/package-lock.json* ./
 RUN npm install --omit=dev
 COPY --from=server-build /app/server/dist ./dist
